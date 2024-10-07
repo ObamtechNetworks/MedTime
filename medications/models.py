@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -14,6 +15,8 @@ class Medication(models.Model):
         ('completed', 'Completed'),
         ('exhausted', 'Exhausted'),
         ('missed', 'Missed'),
+        ('stopped', 'Stopped'),  # Add this new status to represent stopped medications
+        ('deleted', 'Deleted'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='medications')
@@ -49,10 +52,6 @@ class Medication(models.Model):
         
         super().save(*args, **kwargs)
     
-    def is_exhausted(self):
-        """Check if the medication is fully consumed."""
-        return self.total_left <= 0
-
     def take_dose(self):
         """Reduces the total_left based on dosage_per_intake and updates last intake time."""
         if self.total_left > 0:
@@ -64,9 +63,35 @@ class Medication(models.Model):
             return True
         return False
 
+    def priority_lead_time_check(self):
+        """
+        Check and enforce the priority lead time for a priority medication.
+        Returns:
+            lead_time_passed (bool): True if the priority lead time has passed or if not applicable.
+            next_allowed_time (datetime): The next time the user can take non-priority medications.
+        """
+        if self.priority_flag:
+            if self.last_intake_time:
+                next_allowed_time = self.last_intake_time + timedelta(minutes=self.priority_lead_time)
+                if timezone.now() >= next_allowed_time:
+                    return True, None  # Lead time has passed
+                else:
+                    return False, next_allowed_time  # Lead time not yet passed, return the next allowed time
+            else:
+                return False, None  # If last_intake_time is not set, priority lead time is irrelevant
+        return True, None  # No priority lead time to enforce
+
     def time_until_next_dose(self):
-        """Calculates the time left until the next dose should be taken."""
-        if self.last_intake_time:
-            next_dose_time = self.last_intake_time + timezone.timedelta(hours=self.time_interval)
-            return next_dose_time - timezone.now()
+        """Calculates the time left until the next dose, considering priority lead time if applicable."""
+        lead_time_passed, next_allowed_time = self.priority_lead_time_check()
+        if not lead_time_passed:
+            return next_allowed_time - timezone.now()
+        else:
+            if self.last_intake_time:
+                next_dose_time = self.last_intake_time + timedelta(hours=self.time_interval)
+                return next_dose_time - timezone.now()
         return None
+
+    def is_exhausted(self):
+        """Check if the medication is fully consumed."""
+        return self.total_left <= 0
