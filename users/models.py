@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
+from rest_framework_simplejwt.tokens import RefreshToken
 from .manager import UserManager
 
 # Create your models here.
@@ -40,12 +41,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def tokens(self):
         """to handle the json webtoken authentication
+        using djangorestframework simple jwt token
+
+        I used the generate tokens manaually process from the docs
         """
-        # refresh = RefreshToken.for_user(self)
-        # return {
-        #     'refresh': str(refresh),
-        #     'access': str(refresh.access_token)
-        # }
+        refresh = RefreshToken.for_user(self)  # for our user object
+        return {
+            'refresh': str(refresh),  # the refresh token (converted to string)
+            'access': str(refresh.access_token)  # access token (converted to string)
+        }
 
 class OneTimePassword(models.Model):
     """One time password model for saving otp into data for each specific user
