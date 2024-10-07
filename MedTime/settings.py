@@ -35,6 +35,7 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
+# APPEND_SLASH=True
 
 # Application definition
 
@@ -56,7 +57,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework_simplejwt.token_blacklist',  # to enable a forcing of loging out user after a time
 ]
 
 REST_FRAMEWORK = {
@@ -65,8 +66,9 @@ REST_FRAMEWORK = {
     )
 }
 
+#  customize 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=20),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
