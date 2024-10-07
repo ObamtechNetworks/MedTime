@@ -24,13 +24,20 @@ def send_code_to_user(email):
     subject = "One Time passcode for Email Verification"
     try:
         user = User.objects.get(email=email)
+        print("from utility func", user)
     except User.DoesNotExist as error:
         raise ValueError(_("User with the specified email does not exist.")) from error
 
     otp_obj, created = OneTimePassword.objects.get_or_create(user=user)
+    print(f"OTP object: {otp_obj}, Created: {created}")
 
-    if not created and otp_obj.created_at > timezone.now() - timedelta(minutes=3):
-        raise ValueError("An OTP was previously sent. Please check your inbox.")
+
+    if otp_obj.created_at:
+        print(f"OTP created at: {otp_obj.created_at}, now: {timezone.now()}")
+        if otp_obj.created_at > timezone.now() - timedelta(minutes=3):
+            raise ValueError("An OTP was previously sent. Please check your inbox.")
+    else:
+        print("No created_at field found in OTP object")
 
     otp_secret, otp_code = generate_otp_secret()
     otp_obj.otp_secret = otp_secret
