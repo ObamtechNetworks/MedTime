@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
 
 from users.models import User
 
@@ -35,8 +37,16 @@ class Medication(models.Model):
 
     def save(self, *args, **kwargs):
         """ Custom save method to ensure total_left starts with total_quantity """
+        # Custom validation to ensure total_quantity and total_left are valid.
+        if self.total_quantity is None or self.total_quantity <= 0:
+            raise ValidationError({'total_quantity': 'Total quantity must be a positive integer.'})
+
+        if self.total_left is None or self.total_left < 0:
+            raise ValidationError({'total_left': 'Total left cannot be negative.'})
+        
         if not self.pk:  # On creation of a new medication
             self.total_left = self.total_quantity
+        
         super().save(*args, **kwargs)
     
     def is_exhausted(self):

@@ -2,7 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from users.models import User
-from models import Medication
+from medications.models import Medication
 
 @pytest.mark.django_db
 class TestMedicationModel:
@@ -95,7 +95,7 @@ class TestMedicationModel:
 
     def test_update_medication_data(self, user):
         """Test updating an existing medication instance."""
-        medication = Medication.objects.update(
+        medication = Medication.objects.create(
             user=user,
             name="Cough Syrup",
             total_quantity=10,
