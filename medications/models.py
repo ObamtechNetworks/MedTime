@@ -55,8 +55,8 @@ class Medication(models.Model):
         return False
 
     def time_until_next_dose(self):
-    """Calculates the time left until the next dose should be taken."""
-    if self.last_intake_time:
-        next_dose_time = self.last_intake_time + timezone.timedelta(hours=self.time_interval)
-        return next_dose_time - timezone.now()
-    return None
+        """Calculates the time left until the next dose should be taken."""
+        if self.last_intake_time:
+            next_dose_time = self.last_intake_time + timezone.timedelta(hours=self.time_interval)
+            return next_dose_time - timezone.now()
+        return None
