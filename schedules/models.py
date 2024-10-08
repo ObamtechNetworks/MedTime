@@ -25,39 +25,40 @@ class Schedule(models.Model):
 
     def calculate_next_dose(self):
         """Calculate the next dose time, considering priority medications."""
-        # Check if the medication is priority
+        time_between_doses = self.medication.calculate_time_between_doses()
+
+        if not time_between_doses:
+            raise ValidationError('Cannot calculate next dose without valid frequency or time interval.')
+
+        # Set the next dose based on the time interval or frequency per day
         if self.medication.priority_flag:
+            # Priority medication logic
             lead_time_passed, next_allowed_time = self.medication.priority_lead_time_check()
             if not lead_time_passed:
-                # If the priority lead time has not passed, set the next dose after lead time
                 self.next_dose = next_allowed_time
             else:
-                # Set next dose based on medication's time interval
-                self.next_dose = timezone.now() + timedelta(hours=self.medication.time_interval)
+                self.next_dose = timezone.now() + time_between_doses
         else:
-            # Non-priority case: calculate next dose based on the time interval
-            self.next_dose = timezone.now() + timedelta(hours=self.medication.time_interval)
+            # Regular medication: calculate next dose based on frequency per day or time interval
+            self.next_dose = timezone.now() + time_between_doses
+        
         self.save()
 
     def calculate_expected_end_time(self):
-        """Calculate when all doses should be completed for the current medication."""
-        
-        # Check if total_quantity and dosage_per_intake are valid
+        """Calculate the expected end time for all doses to be completed."""
         if self.medication.total_left <= 0:
-            # Medication is already exhausted
+            # Medication exhausted
             self.expected_end_time = timezone.now()
-            self.status = 'completed'  # Explicitly mark the schedule as completed
-            self.medication.status = 'exhausted'  # Mark medication as exhausted
+            self.status = 'completed'
+            self.medication.status = 'exhausted'
             self.medication.save()
-        elif self.medication.dosage_per_intake <= 0:
-            # Handle invalid dosage per intake (optional: raise an error, log, or set a default)
-            raise ValidationError({'dosage_per_intake': 'Dosage per intake must be greater than 0.'})
         else:
-            # Calculate remaining doses
+            # Calculate remaining doses and expected end time
             doses_remaining = self.medication.total_left // self.medication.dosage_per_intake
-            # Set expected end time based on doses remaining and time interval
-            self.expected_end_time = self.start_time + timedelta(hours=self.medication.time_interval * doses_remaining)
-        
+            time_between_doses = self.medication.calculate_time_between_doses()
+            print('TIME BETWEEN DOSES: ', time_between_doses)
+
+            self.expected_end_time = self.start_time + timedelta(hours=time_between_doses.total_seconds() / 3600 * doses_remaining)
         self.save()
 
 
@@ -112,6 +113,8 @@ class Schedule(models.Model):
                 status='scheduled',
             )
 
+    def __str__(self):
+        return f'Schedule for {self.medication.user.email}'
 
 class MissedDose(models.Model):
     medication = models.ForeignKey(Medication, on_delete=models.CASCADE)
