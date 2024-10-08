@@ -38,6 +38,13 @@ class Medication(models.Model):
     def __str__(self):
         return f"{self.name} for {self.user}"
 
+
+    def clean(self):
+        """Add custom validation logic."""
+        if self.priority_flag and not self.priority_lead_time:
+            raise ValidationError(
+                {'priority_lead_time': 'Priority lead time must be set for priority medications.'})
+
     def save(self, *args, **kwargs):
         """ Custom save method to ensure total_left starts with total_quantity """
         # Custom validation to ensure total_quantity and total_left are valid.
@@ -47,20 +54,30 @@ class Medication(models.Model):
         if self.total_left is None or self.total_left < 0:
             raise ValidationError({'total_left': 'Total left cannot be negative.'})
         
+        self.clean()  # custom validation for priority flag
         if not self.pk:  # On creation of a new medication
             self.total_left = self.total_quantity
         
         super().save(*args, **kwargs)
     
     def take_dose(self):
-        """Reduces the total_left based on dosage_per_intake and updates last intake time."""
+        """Reduces the total_left based on dosage_per_intake, marks missed doses, and updates last intake time."""
+        now = timezone.now()
+        time_until_next_dose = self.time_until_next_dose()
+
+        if time_until_next_dose and time_until_next_dose.total_seconds() < 0:  # Dose overdue
+            # Mark the missed dose (you may want to log it or notify the user)
+            self.status = 'missed'
+
         if self.total_left > 0:
             self.total_left = max(self.total_left - self.dosage_per_intake, 0)
-            self.last_intake_time = timezone.now()  # Update last intake time when a dose is taken
+            self.last_intake_time = now  # Update the last intake time when a dose is taken
+
             if self.is_exhausted():
                 self.status = 'exhausted'
             self.save()
             return True
+        
         return False
 
     def priority_lead_time_check(self):
@@ -83,14 +100,28 @@ class Medication(models.Model):
 
     def time_until_next_dose(self):
         """Calculates the time left until the next dose, considering priority lead time if applicable."""
+        # Check if it's the first dose (no last intake time set yet)
+        if not self.last_intake_time:
+            if self.priority_flag:
+                # For priority medication, the next dose should be after the lead time + interval (starting from now)
+                return timedelta(hours=self.time_interval)  # Since this is the first dose
+            else:
+                # For non-priority, the next dose is just based on the time_interval from now
+                return timedelta(hours=self.time_interval)
+        
+        # If it's not the first dose, follow the normal logic with lead time checks
         lead_time_passed, next_allowed_time = self.priority_lead_time_check()
+        
         if not lead_time_passed:
-            return next_allowed_time - timezone.now()
-        else:
-            if self.last_intake_time:
-                next_dose_time = self.last_intake_time + timedelta(hours=self.time_interval)
-                return next_dose_time - timezone.now()
-        return None
+            if next_allowed_time is not None:
+                return next_allowed_time - timezone.now()
+            else:
+                return None  # No lead time to enforce
+        
+        # Calculate next regular dose
+        next_dose_time = self.last_intake_time + timedelta(hours=self.time_interval)
+        return next_dose_time - timezone.now()
+
 
     def is_exhausted(self):
         """Check if the medication is fully consumed."""
