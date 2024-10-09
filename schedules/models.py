@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import transaction  # for atomicity
 from django.forms import ValidationError
 from django.utils import timezone
 from medications.models import Medication
@@ -7,10 +8,9 @@ from datetime import timedelta
 class Schedule(models.Model):
     STATUS_CHOICES = [
         ('scheduled', 'Scheduled'),
-        ('taken', 'Taken'),
+        ('fulfilled', 'Fulfilled'),
         ('missed', 'Missed'),
         ('stopped', 'Stopped'),
-        ('completed', 'Completed'),
         ('deleted', 'Deleted'),
     ]
 
@@ -18,103 +18,78 @@ class Schedule(models.Model):
     start_time = models.DateTimeField()  # Start time for the dose
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='scheduled')
     fulfilled_time = models.DateTimeField(null=True, blank=True)  # Time dose was taken
-    next_dose = models.DateTimeField(null=True, blank=True)  # Time for next dose
+    next_dose_schedule = models.DateTimeField(null=True, blank=True)  # Time for next dose
     expected_end_time = models.DateTimeField(null=True, blank=True)  # When all doses are expected to be completed
     stopped_time = models.DateTimeField(null=True, blank=True)
     deleted_time = models.DateTimeField(null=True, blank=True)
 
     def calculate_next_dose(self):
         """Calculate the next dose time, considering priority medications."""
-        time_between_doses = self.medication.calculate_time_between_doses()
+        # check if medication is still active:
+        if self.medication.status == 'active':
+            time_between_doses = self.medication.calculate_time_between_doses()
+            
+            if not time_between_doses:
+                raise ValidationError('Cannot calculate next dose without valid frequency or time interval.')
 
-        if not time_between_doses:
-            raise ValidationError('Cannot calculate next dose without valid frequency or time interval.')
-
-        # Set the next dose based on the time interval or frequency per day
-        if self.medication.priority_flag:
-            # Priority medication logic
-            lead_time_passed, next_allowed_time = self.medication.priority_lead_time_check()
-            if not lead_time_passed:
-                self.next_dose = next_allowed_time
-            else:
-                self.next_dose = timezone.now() + time_between_doses
+            # Directly use the medication's next dose calculation
+            next_dose_time = self.medication.calculate_next_dose_time()
+            self.next_dose_schedule = next_dose_time  # Update with the medication's calculated next dose time
         else:
-            # Regular medication: calculate next dose based on frequency per day or time interval
-            self.next_dose = timezone.now() + time_between_doses
-        
+            if self.medication.status in ['completed', 'stopped', 'deleted']:
+                return None  # No next dose for non-active medications
         self.save()
 
+    @transaction.atomic
     def calculate_expected_end_time(self):
         """Calculate the expected end time for all doses to be completed."""
-        if self.medication.total_left <= 0:
-            # Medication exhausted
+        if self.medication.is_completed():
             self.expected_end_time = timezone.now()
-            self.status = 'completed'
-            self.medication.status = 'exhausted'
+            self.status = 'fulfilled'
+            self.medication.status = 'completed'
             self.medication.save()
+            self.save()
+            return None
         else:
-            # Calculate remaining doses and expected end time
+            # calc rem. dose and expected end time
             doses_remaining = self.medication.total_left // self.medication.dosage_per_intake
             time_between_doses = self.medication.calculate_time_between_doses()
-            print('TIME BETWEEN DOSES: ', time_between_doses)
-
-            self.expected_end_time = self.start_time + timedelta(hours=time_between_doses.total_seconds() / 3600 * doses_remaining)
-        self.save()
-
-
-    def handle_end_of_reminder(self):
-        """Check if the schedule has reached its end and perform necessary updates."""
-        
-        # If the medication has been stopped, update status accordingly
-        if self.medication.status == 'stopped':
-            self.status = 'stopped'
-            self.stopped_time = timezone.now()  # TODO: TIME SHOULD COME FROM THE ENDPOINT ACTION
+            self.expected_end_time = self.start_time + timedelta(hours=(time_between_doses.total_seconds() / 3600 * doses_remaining))
             self.save()
-            return
+            return self.expected_end_time
 
-        # If the current time has reached or passed the expected end time
-        if timezone.now() >= self.expected_end_time:
-            # Check if the medication is exhausted
-            if self.medication.is_exhausted():
-                self.status = 'completed'
-                self.medication.status = 'exhausted'
-                self.medication.save()
-            else:
-                # If the medication is still active but past its reminder
-                self.status = 'completed'
-            self.save()
-        else:
-            # If schedule hasn't ended, calculate the next dose
-            self.calculate_next_dose()
-        
-        # Optionally: Handle missed doses (if applicable)
-        if self.status == 'missed':
-            MissedDose.objects.create(medication=self.medication, schedule=self)
-            self.medication.total_left -= self.medication.dosage_per_intake
-            self.medication.save()
-            self.save()
-
-
-    def generate_recurring_schedules(self):
-        """
-        Generate recurring schedule entries based on the medication's frequency and interval.
-        Handles edge cases where the medication is paused or stopped.
-        """
-        total_doses = self.medication.total_quantity // self.medication.dosage_per_intake
-        for i in range(total_doses):
-            # Check if the medication is still active, or break the loop if stopped
-            if self.medication.status not in ['active', 'completed']:
-                break
-
-            next_dose_time = self.start_time + timezone.timedelta(hours=self.medication.time_interval * i)
+    def generate_next_schedule(self):
+        """Generate only the next schedule after a dose is fulfilled."""
+        next_dose_time = self.calculate_next_dose()
+        if next_dose_time:
             Schedule.objects.create(
                 medication=self.medication,
                 start_time=next_dose_time,
-                status='scheduled',
+                status='scheduled'
             )
 
+    def mark_as_missed(self):
+        """
+        Mark the schedule as missed, log it in the MissedDose model, 
+        and adjust medication quantity accordingly.
+        """
+        if self.status == 'missed':
+            return  # Avoid marking an already missed dose
+
+        self.status = 'missed'
+        self.save()
+
+        try:
+            missed_dose = MissedDose.objects.create(medication=self.medication, schedule=self)
+            missed_dose.adjust_medication_quantity()
+        except Exception as e:
+            # Handle the exception, log it, or re-raise it as necessary
+            raise ValidationError(f"Failed to mark missed dose: {str(e)}")
+
+
     def __str__(self):
-        return f'Schedule for {self.medication.user.email}'
+        return f'Schedule for {self.medication.user.email}, Medication: {self.medication.name}, Start: {self.start_time}'
+
 
 class MissedDose(models.Model):
     medication = models.ForeignKey(Medication, on_delete=models.CASCADE)

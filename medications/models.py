@@ -12,17 +12,15 @@ class Medication(models.Model):
     """Class for each medication added by user"""
     STATUS_CHOICES = [
         ('active', 'Active'),
-        ('completed', 'Completed'),
-        ('exhausted', 'Exhausted'),
+        ('taken', 'Taken'),
         ('missed', 'Missed'),
-        ('stopped', 'Stopped'),  # Add this new status to represent stopped medications
-        ('deleted', 'Deleted'),
+        ('completed', 'Completed'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='medications')
     name = models.CharField(max_length=255)  # Drug name
     total_quantity = models.PositiveIntegerField()  # Total quantity of the drug
-    total_left = models.PositiveIntegerField()  # Internal use, starts equal to total_quantity
+    total_left = models.PositiveIntegerField(null=True, blank=True)  # Internal use, starts equal to total_quantity
     dosage_per_intake = models.PositiveIntegerField()  # Dosage taken per intake
     frequency_per_day = models.PositiveIntegerField()  # How many times per day
     time_interval = models.PositiveIntegerField(null=True, blank=True)  # Optional, interval between doses in hours
@@ -54,9 +52,6 @@ class Medication(models.Model):
         """Ensure total_left starts with total_quantity."""
         if self.total_quantity <= 0:
             raise ValidationError({'total_quantity': 'Total quantity must be a positive integer.'})
-
-        if self.total_left < 0:
-            raise ValidationError({'total_left': 'Total left cannot be negative.'})
         
         self.clean()
         if not self.pk:  # On creation of a new medication
@@ -80,18 +75,19 @@ class Medication(models.Model):
     def take_dose(self):
         """Reduces the total_left based on dosage_per_intake, marks missed doses, and updates last intake time."""
         now = timezone.now()
-        time_until_next_dose = self.time_until_next_dose()
-
-        if time_until_next_dose and time_until_next_dose.total_seconds() < 0:  # Dose overdue
-            # Mark the missed dose (you may want to log it or notify the user)
-            self.status = 'missed'
+        next_dose_time = self.calculate_next_dose_time()
 
         if self.total_left > 0:
+            if next_dose_time and next_dose_time.total_seconds() < 0:  # Dose overdue
+                # Mark the missed dose
+                self.status = 'missed'  # ensure schedule updates this in its call
+            else:
+                self.last_intake_time = now
+                self.status = 'taken'
             self.total_left = max(self.total_left - self.dosage_per_intake, 0)
-            self.last_intake_time = now  # Update the last intake time when a dose is taken
 
-            if self.is_exhausted():
-                self.status = 'exhausted'
+            if self.is_completed():
+                self.status = 'completed'
             self.save()
             return True
         
@@ -112,54 +108,31 @@ class Medication(models.Model):
                 else:
                     return False, next_allowed_time  # Lead time not yet passed, return the next allowed time
             else:
-                return False, None  # If last_intake_time is not set, priority lead time is irrelevant
+                return False, timezone.now() + timedelta(minutes=self.priority_lead_time)  # Default to a time in the future
         return True, None  # No priority lead time to enforce
 
-    def time_until_next_dose(self):
-        """Calculates the time left until the next dose, considering priority lead time if applicable."""
-        
-        # check if meds is exhausted:
-        if self.is_exhausted():
-            return None
-        # If no last intake time is set (first dose)
-        if not self.last_intake_time:
-            if self.priority_flag:
-                # For priority medication, enforce time_interval for the first dose
-                if self.time_interval:
-                    return timedelta(hours=self.time_interval)
-                else:
-                    raise ValidationError("Time interval must be set for priority medications.")
-            else:
-                # For regular medication, use time_interval if available, otherwise calculate based on frequency_per_day
-                if self.time_interval:
-                    return timedelta(hours=self.time_interval)
-                elif self.frequency_per_day > 0:
-                    return timedelta(hours=24 // self.frequency_per_day)
-                else:
-                    raise ValidationError("Either time_interval or frequency_per_day must be provided for regular medications.")
-        
-        # For subsequent doses, first check priority lead time if applicable
+
+    def calculate_next_dose_time(self):
+        """Calculate the time for the next dose considering priority and intervals."""
+        if self.is_completed():
+            self.status = 'completed'
+            return None  # No more doses available
+
         lead_time_passed, next_allowed_time = self.priority_lead_time_check()
-        
+
         if not lead_time_passed:
-            # If lead time hasn't passed, return the time until the next allowed dose
-            if next_allowed_time is not None:
-                return next_allowed_time - timezone.now()
-            else:
-                raise ValidationError("Lead time check failed but no next allowed time was provided.")
-        
-        # For non-priority meds or if lead time passed, calculate time based on last intake time and interval
+            return next_allowed_time - timezone.now()
+
         if self.time_interval:
             next_dose_time = self.last_intake_time + timedelta(hours=self.time_interval)
         elif self.frequency_per_day > 0:
             next_dose_time = self.last_intake_time + timedelta(hours=24 // self.frequency_per_day)
         else:
             raise ValidationError("Either time_interval or frequency_per_day must be set to calculate next dose.")
-        
+
         return next_dose_time - timezone.now()
 
 
-
-    def is_exhausted(self):
+    def is_completed(self):
         """Check if the medication is fully consumed."""
         return self.total_left <= 0
