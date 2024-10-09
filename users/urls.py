@@ -1,5 +1,9 @@
 """Handle the url pattern for the user authentication"""
 from django.urls import path
+
+# for refresh token
+from rest_framework_simplejwt.views import TokenRefreshView
+
 from .views import (RegisterUserView,
                     VerifyUserEmail,
                     ResendOTP,
@@ -18,4 +22,7 @@ urlpatterns = [
     path('set-new-password/', SetNewPassword.as_view(), name='set-new-password'),
     path('test-profile/', TestAuthenticationView.as_view(), name='granted'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
+
+    # handle token refresh
+    path('token/refresh/', TokenRefreshView.as_view(), name='refresh-token'),
 ]
