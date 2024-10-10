@@ -15,7 +15,7 @@ class Schedule(models.Model):
     ]
 
     medication = models.ForeignKey(Medication, on_delete=models.CASCADE)
-    schedule_time = models.DateTimeField()  # Start time for the dose
+    scheduled_time = models.DateTimeField()  # Start time for the dose
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='scheduled')
     fulfilled_time = models.DateTimeField(null=True, blank=True)  # Time dose was taken
     missed_time = models.DateTimeField(null=True, blank=True)  # When all doses are expected to be completed
@@ -36,29 +36,31 @@ class Schedule(models.Model):
         self.status = 'missed'
         self.missed_time = timezone.now()
         self.save()
-        # update medication
-        self.medication.update_quantity(dose_taken=False)
-
-    @staticmethod
-    def create_next_schedule(medication, last_scheduled_time):
-        """Create the next schedule after handling current one"""
-        # check if medication is completed
-        if medication.status == 'completed':
-            return  # stop scheduling
-        next_scheduled_time = medication.calculate_next_schedule_time(last_scheduled_time)
-        Schedule.objects.create(
-            medication=medication,
-            schedule_time=next_scheduled_time,
-            status='scheduled'
+        # update the missed dose in the MissedDose model
+        # Create a MissedDose record
+        missed_dose = MissedDose.objects.create(
+            medication=self.medication,
+            schedule=self,
         )
+        # adjust missed dose quantity
+        missed_dose.adjust_medication_quantity()
+
+
+    # def create_next_schedule(medications, last_scheduled_time):
+    #     """Create the next schedules for all medications and handle priority logic."""
+    #     #TODO???
+    #     pass
+
+
 
     def is_due(self):
         """Check if this schedule is due."""
-        return self.scheduled_time <= datetime.now() and self.status == 'scheduled'
+        return self.scheduled_time <= timezone.now() and self.status == 'scheduled'
 
 
     def __str__(self):
-        return f'Schedule for {self.medication.user.email}, Medication: {self.medication.drug_name}, Start: {self.schedule_time}'
+        return f'Schedule for {self.medication.user.email}, \
+            Medication: {self.medication.drug_name}, Start: {self.scheduled_time}'
 
 
 class MissedDose(models.Model):
@@ -69,14 +71,4 @@ class MissedDose(models.Model):
     def adjust_medication_quantity(self):
 
         """Automatically reduce medication quantity when a dose is missed."""
-        if self.medication.total_left > 0:
-            self.medication.total_left -= self.medication.dosage_per_intake
-            self.medication.save()
-
-    def mark_schedule_as_missed(self):
-        """Mark the associated schedule as missed and adjust the medication quantity."""
-        self.schedule.status = 'missed'
-        self.schedule.save()
-        self.adjust_medication_quantity()
-
-
+        self.medication.update_quantity(dose_taken=False)
