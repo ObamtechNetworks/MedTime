@@ -1,3 +1,4 @@
+# scheduler.py from utilities.scheduler import create_next_schedule
 from datetime import timedelta
 from django.utils import timezone
 from medications.models import Medication
@@ -44,8 +45,3 @@ def create_next_schedule(user, last_scheduled_time=None):
         medication.save()
 
     return next_schedules
-
-
-
-# if __name__ == "__main__":
-#     create_next_schedule()
