@@ -21,8 +21,8 @@ class Medication(models.Model):
     total_left = models.PositiveIntegerField(null=True, blank=True)  # Internal use, starts equal to total_quantity
     dosage_per_intake = models.PositiveIntegerField()  # Dosage taken per intake
     frequency_per_day = models.PositiveIntegerField(null=True, blank=True)  # How many times per day
-    # time_interval = models.PositiveIntegerField(null=True, blank=True)  # Optional, interval between doses in hours
-    last_intake_time = models.DateTimeField(null=True, blank=True)  # Last time this medication was taken
+    time_interval = models.PositiveIntegerField(null=True, blank=True)  # Optional, interval between doses in hours
+    last_scheduled_time = models.DateTimeField(null=True, blank=True)  # Last time this medication was taken
     priority_flag = models.BooleanField(default=False)  # Is it a priority drug?
     priority_lead_time = models.PositiveIntegerField(null=True, blank=True)  # Gap in minutes for priority drugs
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
@@ -57,23 +57,34 @@ class Medication(models.Model):
         
         super().save(*args, **kwargs)
 
-    def calculate_schedule_time(self, last_scheduled_time):
-        """Calculate the next schedule based on the medication properties."""
 
+    def calculate_next_time_interval(self, last_scheduled_time):
+        """Calculate the next schedule time based on the medication properties."""
+        
         # Check if medication is completed
-        if self.total_left <= 0:
+        if self.is_completed():
             self.status = 'completed'
             self.save()
             return None  # No next time if medication is finished
 
-        if self.priority_flag and self.priority_lead_time:
-            next_time = last_scheduled_time + timedelta(minutes=self.priority_lead_time)
-        elif self.time_interval:
-            next_time = last_scheduled_time + timedelta(hours=self.time_interval)
+        # Handle priority drug
+        if self.priority_flag:
+            # For priority drugs, add the time interval to the last scheduled time
+            return last_scheduled_time + timedelta(hours=self.time_interval)
         else:
-            # Calculate based on frequency per day
-            next_time = last_scheduled_time + timedelta(hours=24 // self.frequency_per_day)
-        return next_time
+            # For non-priority drugs, calculate based on the provided time interval or frequency
+            if self.time_interval:
+                # If time_interval is defined, calculate the next schedule based on it
+                return last_scheduled_time + timedelta(hours=self.time_interval)
+            elif self.frequency_per_day:
+                # If frequency is defined, calculate based on frequency
+                return last_scheduled_time + timedelta(hours=24 / self.frequency_per_day)
+
+        # If no time interval or frequency is provided, return None
+        return None
+
+
+
 
     
     def update_quantity(self, dose_taken=True):
@@ -83,8 +94,11 @@ class Medication(models.Model):
         if self.is_completed():
             self.status = 'completed'
             return None
+        
+        if dose_taken:
+            self.total_left -= self.dosage_per_intake
         else:
-            self.total_left -= 1  # Decrement quantity for both taken and missed doses
+            self.total_left -= self.dosage_per_intake  # Or some other rule for missed doses
         
         self.save()
 
