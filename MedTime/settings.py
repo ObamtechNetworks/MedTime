@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',  # to enable a forcing of loging out user after a time
+    # 'celery',
 ]
 
 REST_FRAMEWORK = {
@@ -68,7 +69,7 @@ REST_FRAMEWORK = {
 
 #  customize 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
@@ -170,6 +171,6 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'info@obamsauth.com'
 
 # Celery Configuration
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # or RabbitMQ URL
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Use Redis as a broker
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
