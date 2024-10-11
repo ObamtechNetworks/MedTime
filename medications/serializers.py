@@ -12,15 +12,11 @@ class MedicationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        user = self.context['request'].user  # Assign current logged-in user
-        medications = []
+        user = self.context['request'].user
         if isinstance(validated_data, list):
-            for data in validated_data:
-                data['user'] = user  # Set user for each medication
-                medication = Medication.objects.create(**data)
-                medications.append(medication)
+            # Handle bulk creation
+            medications = [Medication.objects.create(**{**data, 'user': user}) for data in validated_data]
+            return medications
         else:
-            validated_data['user'] = user
-            medication = Medication.objects.create(**validated_data)
-            medications.append(medication)
-        return medications  # Return created instances
+            # Handle single record creation
+            return Medication.objects.create(**{**validated_data, 'user': user})

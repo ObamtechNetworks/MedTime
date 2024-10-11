@@ -1,9 +1,6 @@
 from django.db import models
-from django.db import transaction  # for atomicity
-from django.forms import ValidationError
 from django.utils import timezone
 from medications.models import Medication
-from datetime import datetime, timedelta
 
 class Schedule(models.Model):
     STATUS_CHOICES = [
