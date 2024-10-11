@@ -32,14 +32,15 @@ class MedicationViewSet(viewsets.ModelViewSet):
         elif not is_list:
             start_time = request.data.get('start_time', None)
 
-        # Create schedules
-        create_next_schedule(request.user, last_scheduled_time=start_time)
+        # Create schedules ONLY for the medications created in this request
+        create_next_schedule(medications, last_scheduled_time=start_time)
 
         # Respond with serialized data (adjust for single vs bulk)
         if is_list:
             return Response(MedicationSerializer(medications, many=True).data, status=status.HTTP_201_CREATED)
         else:
             return Response(MedicationSerializer(medications).data, status=status.HTTP_201_CREATED)
+
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

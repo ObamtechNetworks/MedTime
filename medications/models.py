@@ -22,7 +22,6 @@ class Medication(models.Model):
     dosage_per_intake = models.PositiveIntegerField()  # Dosage taken per intake
     frequency_per_day = models.PositiveIntegerField(null=True, blank=True)  # How many times per day
     time_interval = models.PositiveIntegerField(null=True, blank=True)  # Optional, interval between doses in hours
-    last_scheduled_time = models.DateTimeField(null=True, blank=True)  # Last time this medication was taken
     priority_flag = models.BooleanField(default=False)  # Is it a priority drug?
     priority_lead_time = models.PositiveIntegerField(null=True, blank=True)  # Gap in minutes for priority drugs
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
@@ -83,10 +82,6 @@ class Medication(models.Model):
         # If no time interval or frequency is provided, return None
         return None
 
-
-
-
-    
     def update_quantity(self, dose_taken=True):
         """Update the total left quantity and check for completion."""
         
