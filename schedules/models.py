@@ -12,13 +12,14 @@ class Schedule(models.Model):
     ]
 
     medication = models.ForeignKey(Medication, on_delete=models.CASCADE)
-    scheduled_time = models.DateTimeField()  # Start time for the dose
+    created_at = models.DateTimeField(auto_now_add=True)
+    next_dose_due_at = models.DateTimeField()  # Time for next dose
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='scheduled')
     fulfilled_time = models.DateTimeField(null=True, blank=True)  # Time dose was taken
-    missed_time = models.DateTimeField(null=True, blank=True)  # When all doses are expected to be completed
-    next_dose_schedule = models.DateTimeField(null=True, blank=True)  # Time for next dose
+    missed_time = models.DateTimeField(null=True, blank=True)  # When dose was missed
     stopped_time = models.DateTimeField(null=True, blank=True)
     deleted_time = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def mark_as_fulfilled(self):
         """Mark a scheduled as fulfilled and update med qty"""
@@ -43,21 +44,14 @@ class Schedule(models.Model):
         missed_dose.adjust_medication_quantity()
 
 
-    # def create_next_schedule(medications, last_scheduled_time):
-    #     """Create the next schedules for all medications and handle priority logic."""
-    #     #TODO???
-    #     pass
-
-
-
     def is_due(self):
         """Check if this schedule is due."""
-        return self.scheduled_time <= timezone.now() and self.status == 'scheduled'
+        return self.next_dose_due_at <= timezone.now() and self.status == 'scheduled'
 
 
     def __str__(self):
         return f'Schedule for {self.medication.user.email}, \
-            Medication: {self.medication.drug_name}, Start: {self.scheduled_time}'
+            Medication: {self.medication.drug_name}, Start: {self.next_dose_due_at}'
 
 
 class MissedDose(models.Model):
