@@ -45,13 +45,13 @@ class RegisterUserView(GenericAPIView):
         """
         user_data = request.data
         serializer = self.serializer_class(data=user_data)
-        # check if serialized data from user data is valid
         if serializer.is_valid(raise_exception=True):
-            # if valid save the data
             serializer.save()
             user = serializer.data
-            # send email function user['emial']  # utils module
-            send_code_to_user(user['email'])
+            try:
+                send_code_to_user(user['email'])
+            except ValueError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)  # Handle OTP error
             return Response({
                 'data': user,
                 'message': f"Hi {user.get('first_name')} thanks for signing up, a passcode has been sent to your mail, use it to complete your registration ..."
