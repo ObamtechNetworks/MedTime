@@ -174,3 +174,9 @@ DEFAULT_FROM_EMAIL = 'info@obamsauth.com'
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Use Redis as a broker
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+
+# ALLOW FRONTEND -CORS HEADERS
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
