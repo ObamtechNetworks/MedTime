@@ -87,14 +87,14 @@ class VerifyUserEmail(GenericAPIView):
             # Create TOTP object for verification
             totp = pyotp.TOTP(otp_obj.otp_secret, interval=300)
 
-            # Verify OTP
-            if not totp.verify(otp_code):
-                return Response({'message': 'Invalid or expired OTP code'}, status=status.HTTP_400_BAD_REQUEST)
-
             # Check if OTP has expired
             if otp_obj.created_at < timezone.now() - timedelta(minutes=5):
                 otp_obj.delete()
                 return Response({'message': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify OTP
+            if not totp.verify(otp_code):
+                return Response({'message': 'Invalid or expired OTP code'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Verify the user and delete OTP after successful verification
             user.is_verified = True
