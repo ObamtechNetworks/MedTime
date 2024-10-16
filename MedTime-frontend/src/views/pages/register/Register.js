@@ -14,6 +14,7 @@ import {
   CModalHeader,
   CModalBody,
   CModalFooter,
+  CSpinner
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useNavigate } from 'react-router-dom'
@@ -38,6 +39,8 @@ const Register = () => {
   const [showOtpModal, setShowOtpModal] = useState(false)
   const [resendDisabled, setResendDisabled] = useState(true)
   const [resendCountdown, setResendCountdown] = useState(300) // 5 minutes
+  const [loading, setLoading] = useState(false) // Loader for form submission
+  const [otpLoading, setOtpLoading] = useState(false) // Loader for OTP verification
 
   const handleChange = (e) => {
     setFormData({
@@ -48,18 +51,22 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true) // Start the loader
+
 
     const { first_name, last_name, email, password, confirm_password } = formData
 
     // Validation: Check if all fields are filled
     if (!first_name || !last_name || !email || !password || !confirm_password) {
       toast.error('All fields are required!')
+      setLoading(false)
       return
     }
 
     // Validation: Check if passwords match
     if (formData.confirm_password !== formData.password) {
       toast.error("Passwords don't match!")
+      setLoading(false)
       return
     }
 
@@ -98,27 +105,38 @@ const Register = () => {
         // Default error handling
         toast.error('Registration failed. Please try again.')
       }
+    }finally {
+      setLoading(false) // Stop the loader
     }
   }
 
   // Handle OTP submit
   const handleOtpSubmit = async () => {
+    setOtpLoading(true)
+    
     try {
+    
+      // Clean the OTP input by trimming spaces and removing any non-numeric characters
+      const cleanedOtp = otp.replace(/\D/g, '').trim();
+      
       const response = await axios.post(import.meta.env.VITE_VERIFY_EMAIL_URL, {
         email: formData.email,
-        otp: otp,
-      })
+        otp: cleanedOtp, // Use cleaned OTP
+      }, { headers: { 'Content-Type': 'application/json' } }
+      )
+      console.log('OTP Verification Response:', response.data) // Log the response
       toast.success('OTP Verified! Redirecting to login...')
       setTimeout(() => {
         navigate('/login')
       }, 2000)
     } catch (error) {
-      console.log(error)
-      console.log(otp)
-
+      console.log('OTP Error Response:', error.response) // Log the error response
+      console.log('Error Details:', error) // Log the full error
       toast.error('Invalid OTP or OTP has expired!')
+    } finally {
+      setOtpLoading(false)
     }
-  }
+}
 
   // Resend OTP
   const handleResendOtp = async () => {
@@ -224,14 +242,14 @@ const Register = () => {
                   </CInputGroup>
 
                   <div className="d-grid">
-                    <CButton className="register-button" type="submit">
-                      Create Account
+                    <CButton className="register-button" type="submit" disabled={loading}>
+                      {loading ? <CSpinner size="sm" /> : 'Create Account'}
                     </CButton>
                   </div>
                 </CForm>
 
                 {/* OTP Modal */}
-                <CModal visible={showOtpModal} onClose={() => setShowOtpModal(false)}>
+                <CModal visible={showOtpModal} backdrop="static" keyboard={false}>
                   <CModalHeader>Enter OTP</CModalHeader>
                   <CModalBody>
                     <CInputGroup className="mb-3">
@@ -242,19 +260,26 @@ const Register = () => {
                         placeholder="Enter OTP"
                       />
                     </CInputGroup>
-                    <CButton color="primary" onClick={handleOtpSubmit}>
-                      Verify OTP
+                    <CButton color="primary" onClick={handleOtpSubmit} disabled={otpLoading}>
+                      {otpLoading ? <CSpinner size="sm" /> : 'Verify OTP'}
                     </CButton>
-                    <CButton color="secondary" onClick={handleResendOtp} disabled={resendDisabled}>
+                  {/* Add Resend OTP button */}
+                  <div className="mt-3">
+                    <CButton
+                      color="link"
+                      onClick={handleResendOtp}
+                      disabled={resendDisabled}
+                    >
                       Resend OTP {resendDisabled && `(${resendCountdown}s)`}
                     </CButton>
-                  </CModalBody>
-                  <CModalFooter>
-                    <CButton color="secondary" onClick={() => setShowOtpModal(false)}>
-                      Close
-                    </CButton>
-                  </CModalFooter>
-                </CModal>
+                  </div>
+                </CModalBody>
+                <CModalFooter>
+                  <CButton color="secondary" onClick={() => setShowOtpModal(false)}>
+                    Close
+                  </CButton>
+                </CModalFooter>
+              </CModal>
               </CCardBody>
             </CCard>
           </CCol>

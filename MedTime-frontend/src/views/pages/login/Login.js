@@ -27,6 +27,7 @@ import Logo from '../../../assets/images/MedTime-logo.jpeg'; // Update the path 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const navigate = useNavigate()
+   const [loading, setLoading] = useState(false) // Loader state
 
   const handleChange = (e) => {
 
@@ -38,9 +39,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
     if (!formData.email || !formData.password) {
       toast.error('Both email and password are required!')
+      setLoading(false)  // Stop loader in case of validation error
       return
     }
 
@@ -87,6 +90,8 @@ const Login = () => {
         // General error handling
         toast.error('An unexpected error occurred. Please try again.')
       }
+    } finally {
+      setLoading(false) // Stop loader
     }
   }
 
@@ -133,8 +138,8 @@ const Login = () => {
                     </CInputGroup>
                     <CRow>
                       <CCol xs={6}>
-                        <CButton type="submit" color="primary" className="px-4">
-                          Login
+                        <CButton type="submit" color="primary" className="px-4" disabled={loading}>
+                          {loading ? 'Loading...' : 'Login'}
                         </CButton>
                       </CCol>
                       <CCol xs={6} className="text-right">
