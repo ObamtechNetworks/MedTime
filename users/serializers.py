@@ -25,21 +25,24 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
     class Meta:
         """Handles the Meta data to be exposed/expected for the specified model
         """
-        model=User
-        fields=['email', 'first_name', 'last_name', 'password', 'confirm_password']
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'password', 'confirm_password']
 
     def validate(self, attrs):
         """handles fields / attributes validations using the specified model
         our case: User model
         """
-        password = attrs.get('password', '')
-        confirm_password = attrs.get('confirm_password', '')
+        password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+
         if password != confirm_password:
-                    raise serializers.ValidationError(_('Passwords do not match'))
-        return attrs
+                    raise serializers.ValidationError(detail={'password':"passwords does not match"})
+        return super().validate(attrs)
 
     def create(self, validated_data):
         """Handles user creation after data has been validated"""
+        validated_data.pop('confirm_password')
+
         user = User.objects.create_user(
               email=validated_data['email'],
               first_name=validated_data['first_name'],
@@ -66,14 +69,16 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ['email', 'password', 'full_name', 'access_token', 'refresh_token']
         
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
+        email = attrs.get('email').strip()
+        password = attrs.get('password').strip()
         request = self.context.get('request')
+
         user = authenticate(request, email=email, password=password)  # lookup db if user with data exists
         if not user:
             raise AuthenticationFailed("invalid credentials try again")
         if not user.is_verified:
             raise AuthenticationFailed("Email is not verified")
+
         user_token = user.tokens()  # generates the access token and referesh token for user
         return {
             'email': user.email, 

@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
             # validate email using django email validator function
             validate_email(email)
         except ValidationError as error:
-            raise ValueError(_("please enter a valid email address")) from error
+            raise ValidationError(_("please enter a valid email address")) from error
 
     def create_user(self, email, first_name, last_name, password, **extra_fields):
         """creates the user for us
