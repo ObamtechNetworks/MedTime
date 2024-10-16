@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { makeStyles } from '@mui/styles'
 import Paper from '@mui/material/Paper'
 import Grid from '@mui/material/Grid'
@@ -36,14 +36,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-function FeaturesSection() {
+const FeaturesSection = forwardRef((props, ref) => {
   const classes = useStyles();
 
   return (
-    <div className="featuresection-wrapper">
+    <div ref={ref} className="featuresection-wrapper">
       <div className="featuresection-title">Main Features</div>
       <div className="featuresection-subtitle">
-        Discover how MedTime can transform your medication management experience. 
+        Discover how MedTime can transform your medication management experience.
         Stay on track with your health goals through our easy-to-use approach.
       </div>
       <div className="features-cols">
@@ -91,7 +91,7 @@ function FeaturesSection() {
       </div>
     </div>
   );
-}
+});
 
 
 export default FeaturesSection

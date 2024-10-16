@@ -156,8 +156,6 @@ const Register = () => {
             <CCard className="mx-4">
               <CCardBody className="p-4 register-content">
                 <div className="logo">
-                  <img src="../../../assets/images/MedTime-logo" alt="Brand Logo" />{' '}
-                  {/* Update path to your logo */}
                 </div>
                 <CForm onSubmit={handleSubmit}>
                   <h1>Register</h1>

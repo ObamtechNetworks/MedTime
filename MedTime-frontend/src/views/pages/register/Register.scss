@@ -55,12 +55,16 @@
   }
 
   .logo {
-    margin-bottom: 20px; /* Space between logo and form */
-    text-align: center;
-    
-    img {
-      max-width: 150px; /* Adjust logo size as needed */
-      height: auto; /* Maintain aspect ratio */
-    }
-  }
+  margin-bottom: 20px; /* Space between logo and form */
+  text-align: center;
+  background-image: url('../../../assets/images/MedTime-logo.jpeg'); /* Path to your image */
+  background-size: contain; /* Ensures the image fits within the div */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  background-position: center; /* Centers the image */
+  width: 200px; /* Set the width of the logo container */
+  height: 200px; /* Set the height of the logo container */
+  display: block; /* Ensure it behaves like a block element */
+  margin: 0 auto; /* Center the logo div */
+}
+
 }

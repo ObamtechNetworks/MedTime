@@ -17,11 +17,13 @@
 }
 
 .text-wrapper {
-  font-family: $font-manrope-regular;
-  font-size: 16px;
+  font-family: $font-poppins-regular;
+  font-size: 20px;
   margin-top: -15px;
   color: $main-gray;
   line-height: 30px;
+  padding: 10px;
+
 }
 
 .button-wrapper {
@@ -29,7 +31,7 @@
 }
 
 .mainbanner-button {
-  @include button($white, $main-purple, 180px, 47px, true);
+  @include button($white, #3a6ad6, 180px, 47px, true);
   font-family: $font-poppins-semibold;
   font-size: 14px;
 }
@@ -51,7 +53,7 @@
   }
 
   .mainbanner-button {
-    @include button($white, $main-purple, 120px, 40px);
+    @include button($white, #3a6ad6, 120px, 40px);
     font-size: 12px;
   }
 }
@@ -73,7 +75,7 @@
   }
 
   .mainbanner-button {
-    @include button($white, $main-purple, 100px, 35px);
+    @include button($white, #3a6ad6, 100px, 35px);
     font-size: 12px;
   }
 }

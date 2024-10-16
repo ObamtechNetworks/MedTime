@@ -9,6 +9,8 @@ import { Logo } from '../../../assets/images-copy'
 import { useMediaQuery } from 'react-responsive'
 import { v4 as uuidv4 } from 'uuid' //to generate key values
 
+import FeaturesSection from '../FeaturesSection'; // Import the FeaturesSection
+
 import './index.scss'
 
 const useStyles = makeStyles((theme) => ({
@@ -17,13 +19,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Navbar = () => {
+const Navbar = ({ featuresRef }) => {
   const classes = useStyles()
 
   const isTabletOrMobile = useMediaQuery({ maxWidth: 980 })
 
+  // Scroll to features when "Features" is clicked
+  const handleFeaturesClick = () => {
+    if (featuresRef.current) {
+      featuresRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   // array that holds navigation menu items
-  const navMenuItems = ['About Us', 'How it Works', 'Integrations', 'Contact']
+  const navMenuItems = ['About Us', 'Features', 'Contact']
 
   return (
     <div className={classes.root}>
@@ -35,7 +44,7 @@ const Navbar = () => {
           {!isTabletOrMobile && (
             <>
               {navMenuItems.map((item) => (
-                <Button key={uuidv4()}>{item}</Button>
+                <Button key={uuidv4()} onClick={item === 'Features' ? handleFeaturesClick : null}>{item}</Button>
               ))}
             </>
           )}

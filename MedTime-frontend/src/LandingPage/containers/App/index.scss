@@ -4,7 +4,6 @@
 // -- App Container styles -- //
 // -------------------------- //
 
-
 .vector-bg {
   z-index: -10;
   position: absolute;
@@ -16,12 +15,23 @@
 
 .content {
   padding: 20px 70px;
+  
+  // Add a background image with light fading effect
+  background-image: 
+    linear-gradient(rgba(58, 106, 214, 0.5), rgba(58, 106, 214, 0.5)), // Color overlay with transparency
+    url('../../../assets/images/bg-image-medtime.jpg');                                     // Background image
+  background-size: cover;                                              // Ensures the image covers the entire area
+  background-position: center;                                         // Centers the image
+  background-repeat: no-repeat;                                        // Prevents the image from repeating
+  background-blend-mode: multiply;                                      // Blends the overlay color and the image
+  opacity: 0.9;   
 }
 
 // mobile screen sizes
 @media screen and (max-width: 478px) {
   .content {
     padding: 0;
+    background-image: none; // No background image on mobile for better performance
   }
 
   .vector-bg {

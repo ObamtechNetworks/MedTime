@@ -41,7 +41,7 @@
 }
 
 .featuresection-button {
-  @include button($white, $main-purple, 180px, 47px);
+  @include button($white, #3a6ad6, 180px, 47px);
   font-family: $font-poppins-semibold;
   font-size: 14px;
 }
@@ -72,7 +72,7 @@
   }
 
   .featuresection-button {
-    @include button($white, $main-purple, 120px, 42px);
+    @include button($white, #3a6ad6, 120px, 42px);
     font-size: 12px;
   }
 }
@@ -98,7 +98,7 @@
   }
 
   .featuresection-button {
-    @include button($white, $main-purple, 100px, 35px);
+    @include button($white, #3a6ad6, 100px, 35px);
     font-size: 12px;
   }
 }
