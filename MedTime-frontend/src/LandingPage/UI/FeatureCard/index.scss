@@ -1,0 +1,101 @@
+@import "../../../styles/variables";
+
+// -------------------------- //
+// -- Feature Card styles  -- //
+// -------------------------- //
+
+.feature-card {
+  height: 225px;
+  padding: 5px;
+}
+
+.feature-card-icon {
+  width: fit-content;
+  padding: 1px 13px;
+  border-radius: 18px;
+  margin-bottom: 15px;
+
+  svg {
+    padding-top: 7px;
+    width: 21px;
+  }
+}
+
+.feature-card-title {
+  color: $main-dark;
+  font-family: $font-poppins-regular;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 36px;
+}
+
+.feature-card-desc {
+  color: $main-gray;
+  font-size: 14px;
+  font-family: $font-poppins-regular;
+  font-weight: normal;
+  line-height: 32px;
+}
+
+// for mobile screen sizes
+@media screen and (max-width: 478px),
+  screen and (min-width: 478px) and (max-width: 600px) {
+  .feature-card-icon {
+    margin: auto;
+    margin-bottom: 15px;
+    padding: 5px 15px;
+
+    svg {
+      width: 30px;
+    }
+  }
+
+  .feature-card-title {
+    font-size: 14px;
+  }
+
+  .feature-card-desc {
+    font-size: 12px;
+    line-height: 30px;
+  }
+}
+
+// for tablet and small desktop screen sizes
+@media screen and (min-width: 600px) and (max-width: 900px) {
+  .feature-card {
+    padding: 0px;
+    display: block;
+  }
+
+  .feature-card-icon {
+    margin-bottom: 5px;
+    svg {
+      width: 18px;
+    }
+  }
+
+  .feature-card-title {
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .feature-card-desc {
+    font-size: 11px;
+    line-height: 18px;
+    word-break: break-all;
+  }
+}
+
+// for normal desktop screen sizes
+@media screen and (min-width: 900px) and (max-width: 1200px) {
+  .feature-card-title {
+    font-size: 13px;
+    line-height: 30px;
+  }
+
+  .feature-card-desc {
+    font-size: 12px;
+    line-height: 20px;
+    word-break: break-all;
+  }
+}

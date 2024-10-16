@@ -1,0 +1,39 @@
+.dashboard-container {
+  padding: 20px;
+//   background-color: #f8f9fa;
+
+  .c-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .c-card-body {
+    text-align: center;
+  }
+
+  h5 {
+    font-weight: bold;
+    color: #4e73df;
+  }
+
+  .progress-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .ongoing-medication {
+    .c-list-group-item {
+      font-size: 16px;
+      background-color: #f1f1f1;
+      border: none;
+    }
+  }
+}

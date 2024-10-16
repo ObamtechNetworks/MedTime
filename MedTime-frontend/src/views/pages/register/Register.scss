@@ -1,0 +1,66 @@
+/* Register.scss */
+
+.register-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  min-height: 100vh; /* Ensure full height */
+}
+
+.register-container {
+  position: relative;
+  background-image: url('../../../assets/images/bg-image-medtime.jpg'); /* Update with your image path */
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(49, 176, 250, 0.5); /* Overlay color and opacity */
+    z-index: 1; /* Place behind content */
+  }
+
+  .register-content {
+    position: relative; /* To position content over the overlay */
+    z-index: 2; /* Place above the overlay */
+    color: white; /* Text color for contrast */
+    padding: 40px; /* Increased padding for breathing space */
+    border-radius: 10px; /* Rounded corners for the card */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+    background: rgba(255, 255, 255, 0.1); /* Light background for form fields */
+
+    h1 {
+      margin-bottom: 15px; /* More space below heading */
+      color: #3a6ad6;
+      font-weight: bold;
+    }
+    
+    .text-body-secondary {
+      margin-bottom: 30px; /* More space for the description */
+    }
+
+    .register-button {
+      background-color: #3a6ad6; /* Example button color */
+      color: white;
+      border: none;
+      &:hover {
+        background-color: #2f5cbf; /* Darker shade on hover */
+      }
+    }
+  }
+
+  .logo {
+    margin-bottom: 20px; /* Space between logo and form */
+    text-align: center;
+    
+    img {
+      max-width: 150px; /* Adjust logo size as needed */
+      height: auto; /* Maintain aspect ratio */
+    }
+  }
+}

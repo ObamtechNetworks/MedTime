@@ -1,0 +1,46 @@
+@import "../../../styles/variables";
+
+// -------------------------- //
+// -- App Container styles -- //
+// -------------------------- //
+
+
+.vector-bg {
+  z-index: -10;
+  position: absolute;
+  top: -14px;
+  left: -356px;
+  width: 1448px;
+  height: 700px;
+}
+
+.content {
+  padding: 20px 70px;
+}
+
+// mobile screen sizes
+@media screen and (max-width: 478px) {
+  .content {
+    padding: 0;
+  }
+
+  .vector-bg {
+    display: none;
+  }
+}
+
+// tablet and smaller desktop screen sizes
+@media screen and (min-width: 478px) and (max-width: 1000px) {
+  .vector-bg {
+    height: 446px;
+    width: 845px;
+  }
+}
+
+// desktop and bigger screen sizes
+@media screen and (min-width: 1000px) and (max-width: 1200px) {
+  .vector-bg {
+    height: 566px;
+    width: 1261px;
+  }
+}

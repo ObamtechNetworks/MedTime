@@ -1,0 +1,27 @@
+/**
+* Holds styles' default variables to be used in scss files
+** Currently has color and font variables
+**/
+
+// MAIN COLORS
+$black: #000;
+$white: #fff;
+$main-dark: #0f2137;
+$main-green: #1ac587;
+$main-purple: #6337be;
+$main-gray: #343d48;
+$main-light-background: #fbfbfd;
+$main-light-gray: #f3f3fc;
+
+// MAIN FONTS
+$font-poppins-regular: "Poppins-regular";
+$font-poppins-light: "Poppins-light";
+$font-poppins-medium: "Poppins-medium";
+$font-poppins-bold: "Poppins-bold";
+$font-poppins-semibold: "Poppins-semibold";
+
+$font-manrope-regular: "Manrope-regular";
+$font-manrope-light: "Manrope-light";
+$font-manrope-medium: "Manrope-medium";
+$font-manrope-bold: "Manrope-bold";
+$font-manrope-semibold: "Manrope-semibold";

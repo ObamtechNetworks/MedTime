@@ -1,0 +1,60 @@
+.login-page {
+  background-image: url('../../../assets/images/bg-image-medtime.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+
+  .card-group {
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .p-4 {
+    background-color: #ffffff;
+    border-radius: 8px;
+  }
+
+  .text-white.bg-primary {
+    background-color: #007bff; // Customize this shade if needed
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    color: #3a6ad6; // MedTime brand color
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+
+  .form-control {
+    border-radius: 50px;
+    padding: 12px 20px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-radius: 50px;
+    padding: 10px 20px;
+    &:hover {
+      background-color: darken(#3a6ad6, 10%);
+    }
+  }
+
+  .btn-link {
+    color: #007bff;
+    &:hover {
+      color: darken(#3a6ad6, 15%);
+    }
+  }
+}
+
+// In your login.scss
+.logo {
+  width: 150px;  // Adjust the size as needed
+  margin: 0 auto; // Center the logo horizontally
+  display: block; // Make it a block element
+}

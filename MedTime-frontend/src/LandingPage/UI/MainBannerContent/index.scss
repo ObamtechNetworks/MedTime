@@ -1,0 +1,86 @@
+@import "../../../styles/variables";
+@import "../../../styles/mixins";
+
+// -------------------------------- //
+// -- Main Banner Content styles -- //
+// -------------------------------- //
+
+.mainbanner-content-wrapper {
+  text-align: left;
+}
+
+.mainbanner-content {
+  // padding-left: 24%;
+  padding: 10%;
+  font-size: 20px;
+  // font-weight: bold;
+}
+
+.text-wrapper {
+  font-family: $font-manrope-regular;
+  font-size: 16px;
+  margin-top: -15px;
+  color: $main-gray;
+  line-height: 30px;
+}
+
+.button-wrapper {
+  margin-top: 25px;
+}
+
+.mainbanner-button {
+  @include button($white, $main-purple, 180px, 47px, true);
+  font-family: $font-poppins-semibold;
+  font-size: 14px;
+}
+
+//for mobile and small screen sizes
+@media screen and (max-width: 478px) {
+  .mainbanner-content {
+    text-align: center;
+    padding: 15px 10px;
+  }
+
+  .text-wrapper {
+    font-size: 12px;
+    margin-top: 0px;
+  }
+
+  .button-wrapper {
+    margin: 20px 0px;
+  }
+
+  .mainbanner-button {
+    @include button($white, $main-purple, 120px, 40px);
+    font-size: 12px;
+  }
+}
+
+//for tablet and small desktop screen sizes
+@media screen and (min-width: 479px) and (max-width: 1000px) {
+  .mainbanner-content {
+    padding-left: 0px;
+  }
+
+  .text-wrapper {
+    font-size: 12px;
+    margin-top: -40px;
+    line-height: 24px;
+  }
+
+  .button-wrapper {
+    margin-top: 11px;
+  }
+
+  .mainbanner-button {
+    @include button($white, $main-purple, 100px, 35px);
+    font-size: 12px;
+  }
+}
+
+//for desktop and bigger screen sizes
+@media screen and (min-width: 1000px) and (max-width: 1200px) {
+  .text-wrapper {
+    margin-top: -44px;
+  }
+}

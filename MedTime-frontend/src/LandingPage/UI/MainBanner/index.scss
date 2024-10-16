@@ -1,0 +1,27 @@
+@import "../../../styles/variables";
+
+// -------------------------- //
+// -- Main Banner styles ---- //
+// -------------------------- //
+
+.mainbanner-wrapper {
+  padding: 10px;
+}
+
+// for mobile and small screen sizes
+@media screen and (max-width: 478px) {
+  .mainbanner-wrapper {
+    background-color: $main-light-background;
+    margin-top: 0px;
+  }
+  .isMobile {
+    display: none;
+  }
+}
+
+//for tablet screen sizes
+@media screen and (min-width: 478px) and (max-width: 600px) {
+  .isMobile {
+    display: none;
+  }
+}

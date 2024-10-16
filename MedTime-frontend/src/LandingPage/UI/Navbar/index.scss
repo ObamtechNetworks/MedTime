@@ -1,0 +1,83 @@
+@import "../../../styles/variables";
+
+// -------------------------- //
+// ------ Navbar styles ----- //
+// -------------------------- //
+
+.appbar-wrapper {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding-top: 10px;
+  button {
+    color: $main-dark;
+    font-size: 14px;
+    font-weight: bold;
+    font-style: normal;
+    text-transform: none;
+    font-family: $font-manrope-regular;
+    padding: 15px 10px;
+    margin: 1px;
+    line-height: 19.12px;
+    width: 127px;
+
+    &:hover,
+    &:focus {
+      background-color: $main-green;
+      border-radius: 6px;
+      color: $white;
+      font-family: $font-poppins-regular;
+      line-height: 18px;
+      letter-spacing: -1%;
+    }
+  }
+
+  button.selected {
+    background-color: $main-green;
+    border-radius: 6px;
+    color: $white;
+    font-family: $font-poppins-regular;
+    line-height: 18px;
+    letter-spacing: -1%;
+  }
+}
+
+.logo-wrapper {
+  flex-grow: 1;
+  margin-left: 65px;
+}
+
+// for mobile and small screens
+@media screen and (max-width: 478px) {
+  .appbar-wrapper {
+    background-color: $white !important;
+    padding: 10px 0px;
+    border-bottom: 1px solid $main-light-gray;
+    button {
+      display: none;
+    }
+
+    button.isMobile {
+      display: block;
+    }
+  }
+
+  .logo-wrapper {
+    margin-left: 1px;
+  }
+}
+
+//for tablet and small desktop screen sizes
+@media screen and (min-width: 478px) and (max-width: 1000px),
+  (max-width: 1240px) {
+  .logo-wrapper {
+    margin-left: 1px;
+  }
+
+  .appbar-wrapper {
+    button {
+      font-size: 11px;
+      padding: 11px 9px;
+      width: 92px;
+    }
+  }
+}
