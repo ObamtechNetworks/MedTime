@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [medications, setMedications] = useState([]) // Medication data
 
   const [showMedicationForm, setShowMedicationForm] = useState(false) // Track if form is open
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
 
   // Check if there are ongoing medications
   const noOngoingMedications = medications.length === 0
