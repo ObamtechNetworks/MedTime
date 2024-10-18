@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CButton,
   CForm,
@@ -31,7 +31,11 @@ const CreateMedicationForm = () => {
 
   // State to hold list of added drugs
   const [drugList, setDrugList] = useState([])
-
+  
+  // see details of drug being updated
+  useEffect(() => {
+    console.log('Updated drug list:', drugList)
+  }, [drugList])
   // State to track the number of drugs added
   const [drugCount, setDrugCount] = useState(0)
 
@@ -42,11 +46,22 @@ const CreateMedicationForm = () => {
   const [showPreview, setShowPreview] = useState(false)
 
   // Handle form changes
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
-    const inputValue = type === 'checkbox' ? checked : value
-    setCurrentDrug({ ...currentDrug, [name]: inputValue })
+ const handleInputChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  
+  // Determine the input value based on the input type
+  let inputValue;
+  if (type === 'checkbox') {
+    inputValue = checked; // For checkboxes, use the checked property
+  } else if (type === 'number') {
+    inputValue = +value; // Convert string input to number for numeric inputs
+  } else {
+    inputValue = value; // Default case for other input types (like text)
   }
+
+  // Update state with the correct value
+  setCurrentDrug({ ...currentDrug, [name]: inputValue });
+}
 
   // Input validation check
   const isValidDrug = () => {
@@ -79,7 +94,6 @@ const CreateMedicationForm = () => {
       setDrugCount(drugCount + 1) // Increase drug count
     }
       
-      console.log(drugList)
     // Clear the form fields
     setCurrentDrug({
       drug_name: '',
@@ -90,6 +104,7 @@ const CreateMedicationForm = () => {
       priority_flag: false,
       priority_lead_time: ''
     })
+
   }
 
   // Function to handle editing a drug
@@ -149,7 +164,7 @@ const CreateMedicationForm = () => {
                 required
               />
             </div>
-
+            
             <div className="mb-3">
               <CFormLabel>Total Quantity</CFormLabel>
               <CFormInput
@@ -164,6 +179,67 @@ const CreateMedicationForm = () => {
                 required
               />
             </div>
+            
+            <div className="mb-3">
+            {/* Priority as a switch */}
+            <CFormSwitch
+                label="Is this a priority (To be taken in Isolation)?"
+                id="priorityFlagSwitch"
+                name="priority_flag"
+                checked={currentDrug.priority_flag}
+                onChange={handleInputChange}
+            />
+            </div>
+
+            {/* Conditionally show Priority Lead Time if priority is set */}
+            {currentDrug.priority_flag ? (
+            <>
+            <div className="mb-3">
+                <CFormLabel style={{fontWeight: "bold", color: "red"}}>Enter gap time before other drugs are taken (In Minutes)</CFormLabel>
+                <CFormInput
+                type="number"
+                name="priority_lead_time"
+                value={currentDrug.priority_lead_time}
+                onChange={handleInputChange}
+                placeholder="Enter lead time in minutes"
+                min="1"
+                step="1"
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                required
+                />
+            </div>
+            
+            <div className="mb-3">
+              <CFormLabel>Time Interval (Hours)</CFormLabel>
+              <CFormInput
+                type="number"
+                name="time_interval"
+                value={currentDrug.time_interval}
+                onChange={handleInputChange}
+                placeholder="Enter time interval in hours"
+                min="1"
+                step="1"
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+              />
+            </div>
+            </>
+            ) : (
+            
+            <div className="mb-3">
+              <CFormLabel>Frequency Per Day</CFormLabel>
+              <CFormInput
+                type="number"
+                name="frequency_per_day"
+                value={currentDrug.frequency_per_day}
+                onChange={handleInputChange}
+                placeholder="Enter frequency per day"
+                min="1"
+                step="1"
+                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
+                required
+              />
+            </div>
+            )}
 
             <div className="mb-3">
               <CFormLabel>Dosage Per Intake</CFormLabel>
@@ -179,64 +255,6 @@ const CreateMedicationForm = () => {
                 required
               />
             </div>
-
-            <div className="mb-3">
-              <CFormLabel>Frequency Per Day</CFormLabel>
-              <CFormInput
-                type="number"
-                name="frequency_per_day"
-                value={currentDrug.frequency_per_day}
-                onChange={handleInputChange}
-                placeholder="Enter frequency per day"
-                min="1"
-                step="1"
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                required
-              />
-            </div>
-
-            <div className="mb-3">
-              <CFormLabel>Time Interval (Hours)</CFormLabel>
-              <CFormInput
-                type="number"
-                name="time_interval"
-                value={currentDrug.time_interval}
-                onChange={handleInputChange}
-                placeholder="Enter time interval in hours"
-                min="1"
-                step="1"
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-              />
-            </div>
-
-            <div className="mb-3">
-            {/* Priority as a switch */}
-            <CFormSwitch
-                label="Is this a priority?"
-                id="priorityFlagSwitch"
-                name="priority_flag"
-                checked={currentDrug.priority_flag}
-                onChange={handleInputChange}
-            />
-            </div>
-
-            {/* Conditionally show Priority Lead Time if priority is set */}
-            {currentDrug.priority_flag && (
-            <div className="mb-3">
-                <CFormLabel>Priority Lead Time (Minutes)</CFormLabel>
-                <CFormInput
-                type="number"
-                name="priority_lead_time"
-                value={currentDrug.priority_lead_time}
-                onChange={handleInputChange}
-                placeholder="Enter lead time in minutes"
-                min="1"
-                step="1"
-                onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
-                required
-                />
-            </div>
-            )}
           </CForm>
 
           {/* Add/Update Button */}
