@@ -5,26 +5,32 @@ import NextDose from './NextDose'
 import OngoingMedication from './OngoingMedication'
 import './Dashboard.scss' // Importing Sass for styling
 
+//  import axios intercpetor
+import api from '../../api/axiosInterceptor'
+
+// import medication component
+import CreateMedicationForm from '../../api/createMedicationModal'
+
 const Dashboard = () => {
   const [progress, setProgress] = useState(75) // Example percentage
   const [totalDays, setTotalDays] = useState(30) // Example total days
   const [daysRemaining, setDaysRemaining] = useState(7) // Example days remaining
   const [hoursLeft, setHoursLeft] = useState(5) // Example hours till next dose
-  const [medications, setMedications] = useState([
-    // { name: 'Med 1', daysCompleted: 2, totalDays: 30 },
-    // { name: 'Med 2', daysCompleted: 3, totalDays: 20 },
-    // { name: 'Med 3', daysCompleted: 3, totalDays: 10 },
-  ])
+  const [medications, setMedications] = useState([]) // Medication data
+
+  const [showMedicationForm, setShowMedicationForm] = useState(false) // Track if form is open
 
   // Check if there are ongoing medications
   const noOngoingMedications = medications.length === 0
 
   // Function to handle schedule creation click
   const handleCreateMedicationSchedule = () => {
-    if (noOngoingMedications) {
-      // Logic to open medication creation form or redirect
-      alert('Create a new medication schedule here.')
-    }
+    setShowMedicationForm(true) // Show the form when button is clicked
+  }
+
+  // Function to handle canceling the form creation
+  const handleCancelMedicationForm = () => {
+    setShowMedicationForm(false) // Hide the form if the user cancels
   }
 
   useEffect(() => {
@@ -45,15 +51,31 @@ const Dashboard = () => {
           <NextDose hoursLeft={hoursLeft} />
         </CCol>
 
-        {/* Button to Create Medication Schedule */}
         <CCol xs={12}>
-          <CButton
-            color="primary"
-            onClick={handleCreateMedicationSchedule}
-            disabled={!noOngoingMedications}
-          >
-            Create Medication Schedule
-          </CButton>
+          {/* Render Button or Form Based on State */}
+          {!showMedicationForm ? (
+            <CButton
+              color="primary"
+              onClick={handleCreateMedicationSchedule}
+              disabled={!noOngoingMedications} // Disable if there are ongoing medications
+            >
+              Create Medication Schedule
+            </CButton>
+          ) : (
+            <div>
+              {/* Render the Create Medication Form */}
+              <CreateMedicationForm />
+
+              {/* Cancel Button to close the form */}
+              <CButton
+                color="secondary"
+                onClick={handleCancelMedicationForm}
+                style={{ marginTop: '10px' }}
+              >
+                Cancel
+              </CButton>
+            </div>
+          )}
         </CCol>
 
         <CCol xs={12}>
