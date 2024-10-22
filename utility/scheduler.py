@@ -9,6 +9,7 @@ from schedules.models import Schedule
 
 from datetime import timedelta
 from django.utils import timezone
+from dateutil import parser
 
 
 def create_next_schedule(medications, last_scheduled_time=None):
@@ -29,6 +30,10 @@ def create_next_schedule(medications, last_scheduled_time=None):
 
     # Adjust schedules based on priority lead time and calculate next dose due time
     for medication in medications:
+
+        # Ensure last_scheduled_time is a datetime object or current_time
+        if isinstance(last_scheduled_time, str):
+            last_scheduled_time = parser.isoparse(last_scheduled_time)
         next_time = medication.calculate_next_time_interval(last_scheduled_time or current_time)
         if not medication.priority_flag and priority_lead_time:
             next_time += timedelta(minutes=priority_lead_time)
