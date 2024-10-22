@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from .models import Medication
 from .serializers import MedicationSerializer
-from utility.scheduler import create_next_schedule
+from utility.scheduler import create_next_schedule, initial_schedule
 
 # LOGGIN ERRORS
 import logging
@@ -39,8 +39,8 @@ class MedicationViewSet(viewsets.ModelViewSet):
         # Save the medications
         medications = serializer.save(user=request.user)
 
-        # Create schedules ONLY for the medications created in this request
-        create_next_schedule(medications, last_scheduled_time=start_time)
+        # Create initial schedules ONLY for the medications created in this request
+        initial_schedule(medications, start_time)
 
         # Respond with serialized data
         return Response(MedicationSerializer(medications, many=True).data, status=status.HTTP_201_CREATED)
