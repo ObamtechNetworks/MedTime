@@ -22,7 +22,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import api from './axiosInterceptor'
 
-const CreateMedicationForm = () => {
+const CreateMedicationForm = ({ onMedicationCreated }) => {
   const [currentDrug, setCurrentDrug] = useState({
     drug_name: '',
     total_quantity: '',
@@ -170,6 +170,10 @@ const CreateMedicationForm = () => {
      // Call fetchSchedules() to update the schedules list after medication creation
     await fetchSchedules();  // <-- Call this function here
 
+    // Refresh medications in Dashboard by calling the passed function
+    if (onMedicationCreated) {
+      onMedicationCreated();
+    }
 
     // Reset the form and drug list
     setDrugList([]);
