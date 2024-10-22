@@ -1,41 +1,26 @@
-/* eslint-disable react/prop-types */
-import React from 'react'
-import { CCard, CCardBody, CCol, CRow, CProgress } from '@coreui/react'
+import React from 'react';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 const GoalOverview = ({ progressPercentage, totalDays, daysRemaining }) => {
   return (
-    <CCard>
-      <CCardBody className="text-center">
-        <h5>Goal Overview</h5>
-        <div className="progress-wrapper">
-          <CProgress
-            value={progressPercentage}
-            color="success"
-            className="mb-3"
-            style={{ height: '150px', borderRadius: '50%', width: '150px' }}
-          >
-            <div
-              style={{ position: 'relative', top: '-140px', fontSize: '24px', fontWeight: 'bold' }}
-            >
-              {progressPercentage}%
-            </div>
-          </CProgress>
-        </div>
-        <CRow className="justify-content-center">
-          <CCol xs="auto">
-            <div>
-              <strong>Total Days:</strong> {totalDays}
-            </div>
-          </CCol>
-          <CCol xs="auto">
-            <div>
-              <strong>Days Remaining:</strong> {daysRemaining}
-            </div>
-          </CCol>
-        </CRow>
-      </CCardBody>
-    </CCard>
-  )
-}
+    <div className="goal-overview">
+      <h3>Goal Overview</h3>
+      <div style={{ width: '150px', height: '150px' }}>
+        <CircularProgressbar
+          value={progressPercentage}
+          text={`${progressPercentage}%`}
+          styles={buildStyles({
+            pathColor: `rgba(62, 152, 199, ${progressPercentage / 100})`,
+            textColor: '#f88',
+            trailColor: '#d6d6d6',
+          })}
+        />
+      </div>
+      <p>Total Days: {totalDays}</p>
+      <p>Days Remaining: {daysRemaining}</p>
+    </div>
+  );
+};
 
-export default GoalOverview
+export default GoalOverview;

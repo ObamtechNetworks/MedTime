@@ -4,10 +4,10 @@ from .models import Schedule
 from .serializers import ScheduleSerializer
 
 class ScheduleViewSet(viewsets.ModelViewSet):
-    queryset = Schedule.objects.all()  # Retrieve all Schedule objects
+    queryset = Schedule.objects.all()  # Base queryset without filters
     serializer_class = ScheduleSerializer  # Use the Schedule serializer
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
 
     def get_queryset(self):
-        # Filter schedules based on the logged-in user's medication
-        return self.queryset.filter(medication__user=self.request.user)
+        # Optimize the query by fetching related medication in one query using select_related
+        return Schedule.objects.select_related('medication').filter(medication__user=self.request.user)

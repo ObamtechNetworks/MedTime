@@ -19,12 +19,16 @@ import axios from 'axios'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { toast } from 'react-toastify'
+
+import { useAuth } from '../../../api/authContext'
 import './login.scss' // Importing the SASS file
 
 // Import your logo image
 import Logo from '../../../assets/images/MedTime-logo.jpeg'; // Update the path accordingly
+import api from '../../../api/axiosInterceptor'
 
 const Login = () => {
+  const { setIsAuthenticated } = useAuth()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const navigate = useNavigate()
    const [loading, setLoading] = useState(false) // Loader state
@@ -50,12 +54,13 @@ const Login = () => {
     try {
       console.log(import.meta.env.VITE_LOGIN_URL) // Check if the URL is correctly loaded
 
-      const response = await axios.post(import.meta.env.VITE_LOGIN_URL, formData)
+      const response = await api.post(import.meta.env.VITE_LOGIN_URL, formData)
       const { access_token, refresh_token } = response.data
       console.log(response.data)
 
       localStorage.setItem('accessToken', access_token)
       localStorage.setItem('refreshToken', refresh_token)
+      setIsAuthenticated(true); // Add this line
 
       toast.success('Login successful! Redirecting...')
       navigate('/dashboard') // Redirect to dashboard after successful login

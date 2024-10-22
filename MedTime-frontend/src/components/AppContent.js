@@ -1,11 +1,23 @@
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { CContainer, CSpinner } from '@coreui/react'
+import { useAuth } from '../api/authContext'
 
 // routes config
 import routes from '../routes'
 
 const AppContent = () => {
+  const { isAuthenticated, loading } = useAuth(); // Use the auth context
+
+  if (loading) {
+    // Show a spinner or loading component while loading
+    return (
+      <CContainer className="px-4" lg>
+        <CSpinner color="primary" />
+      </CContainer>
+    );
+  }
+
   return (
     <CContainer className="px-4" lg>
       <Suspense fallback={<CSpinner color="primary" />}>
@@ -18,7 +30,7 @@ const AppContent = () => {
                   path={route.path}
                   exact={route.exact}
                   name={route.name}
-                  element={<route.element />}
+                  element={isAuthenticated ? <route.element /> : <Navigate to="/login" replace />} // Check authentication
                 />
               )
             )
@@ -28,7 +40,7 @@ const AppContent = () => {
         </Routes>
       </Suspense>
     </CContainer>
-  )
-}
+  );
+};
 
-export default React.memo(AppContent)
+export default React.memo(AppContent);

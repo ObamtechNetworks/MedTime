@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from dateutil import parser
+
 
 from users.models import User
 
@@ -65,6 +67,10 @@ class Medication(models.Model):
             self.status = 'completed'
             self.save()
             return None  # No next time if medication is finished
+        
+        # Ensure last_scheduled_time is a datetime object
+        if isinstance(last_scheduled_time, str):
+            last_scheduled_time = parser.isoparse(last_scheduled_time)
 
         # Handle priority drug
         if self.priority_flag:

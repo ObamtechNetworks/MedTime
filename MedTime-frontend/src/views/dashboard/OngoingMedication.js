@@ -1,46 +1,42 @@
-/* eslint-disable react/prop-types */
-import React from 'react'
-import {
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
-  CCard,
-  CCardBody,
-} from '@coreui/react'
+import React from 'react';
+import { CTable, CTableHead, CTableBody, CTableRow, CTableHeaderCell, CTableDataCell } from '@coreui/react';
 
 const OngoingMedication = ({ medications }) => {
   return (
-    <CCard className="ongoing-medication">
-      <CCardBody>
-        <h5>Ongoing Medications</h5>
-        {medications.length > 0 ? (
-          <CTable hover striped responsive>
-            <CTableHead>
-              <CTableRow>
-                <CTableHeaderCell>Name</CTableHeaderCell>
-                <CTableHeaderCell>Capsules/Doses Taken</CTableHeaderCell>
-                <CTableHeaderCell>Total Dose</CTableHeaderCell>
+    <div>
+      <h3>Ongoing Medications</h3>
+      {medications.length > 0 ? (
+        <CTable hover striped responsive>
+          <CTableHead>
+            <CTableRow>
+              <CTableHeaderCell>Medication</CTableHeaderCell>
+              <CTableHeaderCell>Total Quantity</CTableHeaderCell>
+              <CTableHeaderCell>Quantity Left</CTableHeaderCell>
+              <CTableHeaderCell>Dosage Per Intake</CTableHeaderCell>
+              <CTableHeaderCell>Frequency / Interval</CTableHeaderCell> {/* Modified header */}
+            </CTableRow>
+          </CTableHead>
+          <CTableBody>
+            {medications.map((medication) => (
+              <CTableRow key={medication.id}>
+                <CTableDataCell>{medication.drug_name}</CTableDataCell>
+                <CTableDataCell>{medication.total_quantity}</CTableDataCell>
+                <CTableDataCell>{medication.total_left}</CTableDataCell>
+                <CTableDataCell>{medication.dosage_per_intake}</CTableDataCell>
+                <CTableDataCell>
+                  {medication.priority_flag
+                    ? `Every ${medication.time_interval} hours (Priority Drug)`
+                    : `${medication.frequency_per_day} times per day`}
+                </CTableDataCell> {/* Conditional rendering */}
               </CTableRow>
-            </CTableHead>
-            <CTableBody>
-              {medications.map((med, index) => (
-                <CTableRow key={index}>
-                  <CTableDataCell>{med.name}</CTableDataCell>
-                  <CTableDataCell>{med.daysCompleted}</CTableDataCell>
-                  <CTableDataCell>{med.totalDays}</CTableDataCell>
-                </CTableRow>
-              ))}
-            </CTableBody>
-          </CTable>
-        ) : (
-          <p>No ongoing medications found.</p>
-        )}
-      </CCardBody>
-    </CCard>
-  )
-}
+            ))}
+          </CTableBody>
+        </CTable>
+      ) : (
+        <p>No ongoing medications found.</p>
+      )}
+    </div>
+  );
+};
 
-export default OngoingMedication
+export default OngoingMedication;

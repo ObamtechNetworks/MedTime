@@ -23,6 +23,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import axios from 'axios'
 import './Register.scss' // Import the SCSS file
+import api from '../../../api/axiosInterceptor'
 
 const Register = () => {
   const navigate = useNavigate()
@@ -74,7 +75,7 @@ const Register = () => {
 
     try {
       // Attempt to register the user
-      const response = await axios.post(import.meta.env.VITE_REGISTER_URL, formData)
+      const response = await api.post(import.meta.env.VITE_REGISTER_URL, formData)
       console.log(response.data)
       toast.success('Registration successful! Please check your email for the OTP.')
       setShowOtpModal(true) // Open OTP modal
@@ -119,7 +120,7 @@ const Register = () => {
       // Clean the OTP input by trimming spaces and removing any non-numeric characters
       const cleanedOtp = otp.replace(/\D/g, '').trim();
       
-      const response = await axios.post(import.meta.env.VITE_VERIFY_EMAIL_URL, {
+      const response = await api.post(import.meta.env.VITE_VERIFY_EMAIL_URL, {
         email: formData.email,
         otp: cleanedOtp, // Use cleaned OTP
       }, { headers: { 'Content-Type': 'application/json' } }
@@ -133,6 +134,7 @@ const Register = () => {
       console.log('OTP Error Response:', error.response) // Log the error response
       console.log('Error Details:', error) // Log the full error
       toast.error('Invalid OTP or OTP has expired!')
+      console.log('Request payload', otp)
     } finally {
       setOtpLoading(false)
     }
@@ -141,7 +143,7 @@ const Register = () => {
   // Resend OTP
   const handleResendOtp = async () => {
     try {
-      await axios.post(import.meta.env.VITE_RESEND_OTP_URL, { email: formData.email })
+      await api.post(import.meta.env.VITE_RESEND_OTP_URL, { email: formData.email })
       toast.success('OTP Resent! Please check your email.')
       startResendTimer() // Start timer again
     } catch (error) {
