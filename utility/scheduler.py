@@ -30,24 +30,34 @@ def create_next_schedule(medications, last_scheduled_time=None):
 
     # Adjust schedules based on priority lead time and calculate next dose due time
     for medication in medications:
-
         # Ensure last_scheduled_time is a datetime object or current_time
         if isinstance(last_scheduled_time, str):
             last_scheduled_time = parser.isoparse(last_scheduled_time)
-        next_time = medication.calculate_next_time_interval(last_scheduled_time or current_time)
-        if not medication.priority_flag and priority_lead_time:
-            next_time += timedelta(minutes=priority_lead_time)
-        next_schedules.append((medication, next_time))
+
+        # Determine the next_time based on the priority status
+        if medication.priority_flag:
+            # For priority drugs, set next dose at last_scheduled_time directly
+            next_time = last_scheduled_time
+        else:
+            # Non-priority medications use the calculated time interval
+            next_time = medication.calculate_next_time_interval(last_scheduled_time or current_time)
+
+            # Add the priority lead time if applicable
+            if priority_lead_time:
+                next_time += timedelta(minutes=priority_lead_time)
+
+        # Append the schedule if next_time is valid
+        if next_time:  # Avoid scheduling for completed medications
+            next_schedules.append((medication, next_time))
 
     # Save the new schedules
     for medication, next_dose_due_at in next_schedules:
-        if next_dose_due_at:  # Avoid scheduling for completed medications
-            Schedule.objects.create(
-                medication=medication,
-                next_dose_due_at=next_dose_due_at
-            )
+        Schedule.objects.create(
+            medication=medication,
+            next_dose_due_at=next_dose_due_at
+        )
 
-    # Create a reminder for the user
+           # Create a reminder for the user
     # reminder_instance = Reminder.objects.create(
     #     medication=medication,
     #     scheduled_time=scheduled_time - timedelta(minutes=5)  # Schedule reminder 5 minutes earlier
@@ -55,5 +65,4 @@ def create_next_schedule(medications, last_scheduled_time=None):
 
     # # Schedule the reminder email to be sent
     # send_reminder.apply_async((reminder_instance.id,), eta=reminder_instance.scheduled_time)
-
     return next_schedules
