@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom';
 import { useSchedules } from './ScheduleContext'
 import {
   CButton,
@@ -23,6 +24,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import api from './axiosInterceptor'
 
 const CreateMedicationForm = ({ onMedicationCreated }) => {
+
+  const navigate = useNavigate();
   const [currentDrug, setCurrentDrug] = useState({
     drug_name: '',
     total_quantity: '',
@@ -188,6 +191,9 @@ const CreateMedicationForm = ({ onMedicationCreated }) => {
     });
     setDrugCount(0);
     setShowPreview(false); // Close the modal
+    setShowForm(false) // close form
+    // Trigger full dashboard reload
+    window.location.reload(); // Refresh the entire page
   } catch (error) {
     console.error("Failed to submit medications", error);
     toast.error("An error occurred while submitting medications.");
