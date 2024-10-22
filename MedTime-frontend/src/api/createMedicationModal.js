@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSchedules } from './ScheduleContext'
 import {
   CButton,
   CForm,
@@ -19,6 +20,7 @@ import 'react-datetime/css/react-datetime.css'
 
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import api from './axiosInterceptor'
 
 const CreateMedicationForm = () => {
   const [currentDrug, setCurrentDrug] = useState({
@@ -30,6 +32,9 @@ const CreateMedicationForm = () => {
     priority_flag: false,
     priority_lead_time: '',
   })
+
+  const { fetchSchedules } = useSchedules(); // Get fetchSchedules from context
+
 
   const [drugList, setDrugList] = useState([])
   const [drugCount, setDrugCount] = useState(0)
@@ -56,14 +61,34 @@ const CreateMedicationForm = () => {
     setCurrentDrug({ ...currentDrug, [name]: inputValue })
   }
 
-  const isValidDrug = () => {
-    return (
-      currentDrug.drug_name &&
-      currentDrug.total_quantity > 0 &&
-      currentDrug.dosage_per_intake > 0 &&
-      (!currentDrug.priority_flag || currentDrug.priority_lead_time > 0)
-    )
+ const isValidDrug = () => {
+  // Check if the drug name, total quantity, and dosage per intake are provided
+  if (!currentDrug.drug_name || currentDrug.total_quantity <= 0 || currentDrug.dosage_per_intake <= 0) {
+    return false; // Basic validation fails
   }
+
+  if (currentDrug.priority_flag) {
+    // For priority drugs, validate the required fields
+    if (currentDrug.priority_lead_time <= 0 || currentDrug.time_interval <= 0) {
+      return false; // Invalid priority lead time or time interval
+    }
+    
+    // Set frequency_per_day to null if it's a priority drug
+    currentDrug.frequency_per_day = null;
+  } else {
+    // For regular drugs, validate frequency_per_day
+    if (currentDrug.frequency_per_day <= 0) {
+      return false; // Invalid frequency per day
+    }
+    
+    // Set priority_lead_time and time_interval to null for regular drugs
+    currentDrug.priority_lead_time = null;
+    currentDrug.time_interval = null;
+  }
+
+  return true; // All validations passed
+};
+
 
   const handleAddOrUpdateDrug = () => {
     if (!isValidDrug()) {
@@ -122,16 +147,50 @@ const CreateMedicationForm = () => {
     setShowPreview(true)
   }
 
-  const handleSubmit = () => {
-  setLoading(true) // Start loading
+  const handleSubmit = async () => {
+    if (drugList.length === 0) {
+      toast.error("Please add at least one medication before submitting.");
+      return;
+    }
+    setLoading(true) // Start loading
   
-  // Simulate API delay (e.g., 3 seconds)
-  setTimeout(() => {
-    setLoading(false) // Stop loading
-    toast.success('Schedule successfully submitted!')  // Success toast
-    setShowPreview(false)  // Close the preview modal after submission
-  }, 3000)
- }
+  try {
+    const payload = {
+      start_time: selectedDateTime.toISOString(),  // Send the scheduled time along with medications
+      medications: drugList
+    };
+    console.log(payload)
+
+    // Make the API call to create the medications
+    const response = await api.post(import.meta.env.VITE_MEDICATIONS_URL, payload);
+
+    // On success, show a success message
+    toast.success("Medications and schedules successfully created!");
+
+     // Call fetchSchedules() to update the schedules list after medication creation
+    await fetchSchedules();  // <-- Call this function here
+
+
+    // Reset the form and drug list
+    setDrugList([]);
+    setCurrentDrug({
+      drug_name: '',
+      total_quantity: '',
+      dosage_per_intake: '',
+      frequency_per_day: '',
+      time_interval: '',
+      priority_flag: false,
+      priority_lead_time: '',
+    });
+    setDrugCount(0);
+    setShowPreview(false); // Close the modal
+  } catch (error) {
+    console.error("Failed to submit medications", error);
+    toast.error("An error occurred while submitting medications.");
+  } finally {
+    setLoading(false); // Stop loading
+  }
+};
  
   const yesterday = Datetime.moment().subtract(1, 'day')
   const isValidDate = (current) => current.isAfter(yesterday)

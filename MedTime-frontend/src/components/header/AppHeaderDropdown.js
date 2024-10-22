@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react';
 import {
   CAvatar,
   CDropdown,
@@ -7,53 +7,67 @@ import {
   CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
-} from '@coreui/react'
-import { cilSettings, cilUser, cilLockLocked } from '@coreui/icons'
-import CIcon from '@coreui/icons-react'
-import { Link } from 'react-router-dom' // Import Link from react-router-dom
-
-import avatar8 from './../../assets/images/avatars/8.jpg'
+} from '@coreui/react';
+import { cilSettings, cilUser, cilLockLocked } from '@coreui/icons';
+import CIcon from '@coreui/icons-react';
+import { Link } from 'react-router-dom';
+import avatar8 from './../../assets/images/avatars/8.jpg';
+import Logout from '../../views/pages/logout/Logout';
+import { useAuth } from '../../api/authContext';
 
 const AppHeaderDropdown = () => {
+  const [showModal, setShowModal] = useState(false);
+  const { setIsAuthenticated } = useAuth(); // Get setIsAuthenticated from context
+
+  const handleLogoutClick = (event) => {
+    event.preventDefault(); // Prevent the default Link behavior
+    setShowModal(true); // Show the logout confirmation modal
+  };
+
   return (
-    <CDropdown variant="nav-item">
-      <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
-        <CAvatar src={avatar8} size="md" />
-      </CDropdownToggle>
-      <CDropdownMenu className="pt-0" placement="bottom-end">
-        <CDropdownHeader className="bg-body-secondary fw-semibold mb-2">Account</CDropdownHeader>
+    <>
+      <CDropdown variant="nav-item">
+        <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
+          <CAvatar src={avatar8} size="md" />
+        </CDropdownToggle>
+        <CDropdownMenu className="pt-0" placement="bottom-end">
+          <CDropdownHeader className="bg-body-secondary fw-semibold mb-2">Account</CDropdownHeader>
 
-        {/* Profile */}
-        <CDropdownItem>
-          <Link to="/profile" className="dropdown-item">
-            <CIcon icon={cilUser} className="me-2" />
-            Profile
-          </Link>
-        </CDropdownItem>
+          {/* Profile */}
+          <CDropdownItem>
+            <Link to="/profile" className="dropdown-item">
+              <CIcon icon={cilUser} className="me-2" />
+              Profile
+            </Link>
+          </CDropdownItem>
 
-        {/* Settings */}
-        <CDropdownItem>
-          <Link to="/settings" className="dropdown-item">
-            <CIcon icon={cilSettings} className="me-2" />
-            Settings
-          </Link>
-        </CDropdownItem>
+          {/* Settings */}
+          <CDropdownItem>
+            <Link to="/settings" className="dropdown-item">
+              <CIcon icon={cilSettings} className="me-2" />
+              Settings
+            </Link>
+          </CDropdownItem>
 
-        <CDropdownDivider />
+          <CDropdownDivider />
 
-        {/* Logout */}
-        <CDropdownItem>
-          <Link to="/logout" className="dropdown-item">
+          {/* Logout */}
+          <CDropdownItem onClick={handleLogoutClick} style={{ cursor: 'pointer' }}>
             <CIcon icon={cilLockLocked} className="me-2" />
             Logout
-          </Link>
-        </CDropdownItem>
-      </CDropdownMenu>
-    </CDropdown>
-  )
-}
+          </CDropdownItem>
+        </CDropdownMenu>
+      </CDropdown>
 
-export default AppHeaderDropdown
+      {/* Logout Confirmation Modal */}
+      <Logout showModal={showModal} setShowModal={setShowModal} setIsAuthenticated={setIsAuthenticated} /> {/* Pass setIsAuthenticated */}
+    </>
+  );
+};
+
+export default AppHeaderDropdown;
+
+
 
 // import React from 'react'
 // import {

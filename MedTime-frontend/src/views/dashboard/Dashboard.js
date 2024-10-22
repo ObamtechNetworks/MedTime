@@ -4,6 +4,7 @@ import GoalOverview from './GoalOverview'
 import NextDose from './NextDose'
 import OngoingMedication from './OngoingMedication'
 import './Dashboard.scss' // Importing Sass for styling
+import { useSchedules } from '../../api/ScheduleContext'
 
 //  import axios intercpetor
 import api from '../../api/axiosInterceptor'
@@ -12,6 +13,14 @@ import api from '../../api/axiosInterceptor'
 import CreateMedicationForm from '../../api/createMedicationModal'
 
 const Dashboard = () => {
+   const { schedules, loading, error, fetchSchedules } = useSchedules();
+
+  useEffect(() => {
+    // Optionally refetch schedules if needed when the dashboard loads
+    if (!schedules.length) {
+      fetchSchedules();
+    }
+  }, []);
   const [progress, setProgress] = useState(75) // Example percentage
   const [totalDays, setTotalDays] = useState(30) // Example total days
   const [daysRemaining, setDaysRemaining] = useState(7) // Example days remaining
@@ -33,10 +42,6 @@ const Dashboard = () => {
   const handleCancelMedicationForm = () => {
     setShowMedicationForm(false) // Hide the form if the user cancels
   }
-
-  useEffect(() => {
-    // API call to fetch progress, medications, etc.
-  }, [])
 
   return (
     <div className="dashboard-container">
@@ -83,7 +88,7 @@ const Dashboard = () => {
           <OngoingMedication medications={medications} />
         </CCol>
       </CRow>
-    </div>
+      </div>
   )
 }
 
