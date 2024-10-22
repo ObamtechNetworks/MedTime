@@ -7,6 +7,11 @@ from .models import Medication
 from .serializers import MedicationSerializer
 from utility.scheduler import create_next_schedule
 
+# LOGGIN ERRORS
+import logging
+
+logger = logging.getLogger(__name__)
+
 class MedicationViewSet(viewsets.ModelViewSet):
     queryset = Medication.objects.all()
     serializer_class = MedicationSerializer
@@ -16,31 +21,29 @@ class MedicationViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        is_list = isinstance(request.data, list)
-
-        # Use many=True when data is a list
-        serializer = self.get_serializer(data=request.data, many=is_list)
-        serializer.is_valid(raise_exception=True)
+        logger.info(f"Received data: {request.data}")  # Log the incoming request data
         
-        # Save the medication(s)
-        medications = serializer.save()
+        # Extract medications from the request
+        medications_data = request.data.get('medications', [])
+        start_time = request.data.get('start_time', None)
 
-        # Get start_time from the first item if it's a list or directly from data
-        start_time = None
-        if is_list and request.data:
-            start_time = request.data[0].get('start_time', None)
-        elif not is_list:
-            start_time = request.data.get('start_time', None)
+        # Check if medications data is a list
+        if isinstance(medications_data, list) and medications_data:
+            serializer = self.get_serializer(data=medications_data, many=True)
+        else:
+            return Response({"error": "Medications data is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the medications
+        medications = serializer.save(user=request.user)
 
         # Create schedules ONLY for the medications created in this request
         create_next_schedule(medications, last_scheduled_time=start_time)
 
-        # Respond with serialized data (adjust for single vs bulk)
-        if is_list:
-            return Response(MedicationSerializer(medications, many=True).data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(MedicationSerializer(medications).data, status=status.HTTP_201_CREATED)
-
+        # Respond with serialized data
+        return Response(MedicationSerializer(medications, many=True).data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -52,4 +55,4 @@ class MedicationViewSet(viewsets.ModelViewSet):
         return Response(
             {"message": f"Successfully deleted {count} medications."},
             status=status.HTTP_204_NO_CONTENT
-        )
+)
